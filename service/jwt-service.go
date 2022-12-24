@@ -60,8 +60,25 @@ func (j *jwtService) GenerateToken(UserID string) string {
 func (j *jwtService) ValidateToken(token string) (*jwt.Token, error){
 	return jwt.Parse(token, func(t_ *jwt.Token)(interface{}, error){
 		if _, ok := t_.Method.(*jwt.SigningMethodHMAC); !ok {
+			// return nil, errors.New("that's not even a token")
 			return nil, fmt.Errorf("unexpected signing method %v",  t_.Header["alg"])
 		}
 		return []byte(j.secretKey), nil
 	})
+	// tokenRes , err := jwt.Parse(token, func(token *jwt.Token) (interface{}, error) {
+	// 	return []byte(j.secretKey), nil
+	// })
+	// if tokenRes.Valid {
+	// 	return tokenRes, nil
+	// }else if errors.Is(err, jwt.ErrTokenMalformed) {
+	// 	return nil, errors.New("that's not even a token")
+	// } else if errors.Is(err, jwt.ErrTokenExpired) || errors.Is(err, jwt.ErrTokenNotValidYet) {
+	// 	// Token is either expired or not active yet
+	// 	return nil, errors.New("timing is everything")
+	// 	// fmt.Println("Timing is everything")
+	// } else {
+	// 	return nil,  errors.New("couldn't handle this token")
+	// 	// fmt.Println("Couldn't handle this token:", err)
+	// }
+	// return nil, fmt.Errorf("That's not even a token")
 }

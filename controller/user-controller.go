@@ -80,7 +80,9 @@ func (c *userController) Update(context *gin.Context) {
 	authHeader := context.GetHeader("Authorization")
 	token, errToken := c.jwtService.ValidateToken(authHeader)
 	if errToken != nil {
-		panic(errToken.Error())
+		res := helper.BuildErrorResponse("Failed to process request", errToken.Error(), helper.EmptyObj{})
+		context.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
 	}
 	claims := token.Claims.(jwt.MapClaims)
 	id, err := strconv.ParseUint(fmt.Sprintf("%v", claims["user_id"]), 10, 64)
@@ -96,11 +98,15 @@ func (c *userController) Profile(context *gin.Context) {
 	authHeader := context.GetHeader("Authorization")
 	token, err := c.jwtService.ValidateToken(authHeader)
 	if err != nil {
-		panic(err.Error())
+		res := helper.BuildErrorResponse("Failed to process request", err.Error(), helper.EmptyObj{})
+		context.AbortWithStatusJSON(http.StatusBadRequest, res)
+		return
+	}else {
+		claims := token.Claims.(jwt.MapClaims)
+		id := fmt.Sprintf("%v", claims["user_id"])
+		user := c.userService.Profile(id)
+		res := helper.BuildSuccessResponse(true, "OK", user)
+		context.JSON(http.StatusOK, res)
 	}
-	claims := token.Claims.(jwt.MapClaims)
-	id := fmt.Sprintf("%v", claims["user_id"])
-	user := c.userService.Profile(id)
-	res := helper.BuildSuccessResponse(true, "OK", user)
-	context.JSON(http.StatusOK, res)
+	
 }
